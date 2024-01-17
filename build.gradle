@@ -66,6 +66,7 @@ dependencies {
     compile libraries.freemarker
     compile libraries.commonLangs
     compile libraries.findBugs
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.16.1'
 
     testCompile libraries.dropwizard_testing
     testCompile libraries.junit

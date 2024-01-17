@@ -46,6 +46,7 @@ import org.apache.freemarker.onlinetester.services.FreeMarkerServiceResponse;
 import org.apache.freemarker.onlinetester.util.DataModelParser;
 import org.apache.freemarker.onlinetester.util.DataModelParsingException;
 import org.apache.freemarker.onlinetester.util.ExceptionUtils;
+import org.apache.freemarker.onlinetester.util.JsonDataModelParser;
 
 import freemarker.template.Configuration;
 import freemarker.template.utility.StringUtil;
@@ -84,8 +85,7 @@ public class ExecuteApiResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response formResult(
-            ExecuteRequest req) {
+    public Response formResult(ExecuteRequest req) {
         ExecuteResponse resp = new ExecuteResponse();
         
         if (StringUtils.isBlank(req.getTemplate()) && StringUtils.isBlank(req.getDataModel())) {
@@ -96,7 +96,7 @@ public class ExecuteApiResource {
         
         ExecuteTemplateArgs serviceArgs = new ExecuteTemplateArgs()
         		.templateSourceCode(lengthCheckAndGetTemplate(req, problems))
-        		.dataModel(parseDataModel(req, problems))
+        		.dataModel(parseJsonDataModel(req, problems))
         		.outputFormat(parseChoiceField(
 		        		ExecuteRequest.Field.OUTPUT_FORMAT, req.getOutputFormat(),
 		        		AllowedSettingValues.DEFAULT_OUTPUT_FORMAT, AllowedSettingValues.OUTPUT_FORMAT_MAP,
@@ -166,6 +166,27 @@ public class ExecuteApiResource {
         
         try {
             return DataModelParser.parse(dataModel, freeMarkerService.getFreeMarkerTimeZone());
+        } catch (DataModelParsingException e) {
+            problems.add(new ExecuteResponseProblem(ExecuteRequest.Field.DATA_MODEL, decorateResultText(e.getMessage())));
+            return null;
+        }
+    }
+
+
+    // IT-SYSTEM 
+
+    private Map<String, Object> parseJsonDataModel(ExecuteRequest request, List<ExecuteResponseProblem> problems){
+        String dataModel = request.getDataModel();
+
+        if (dataModel.length() > MAX_DATA_MODEL_INPUT_LENGTH) {
+            String error = formatMessage(
+                    MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_DATA_MODEL_INPUT_LENGTH);
+            problems.add(new ExecuteResponseProblem(ExecuteRequest.Field.DATA_MODEL, error));
+            return null;
+        }
+        
+        try {
+            return JsonDataModelParser.parseValue(dataModel, freeMarkerService.getFreeMarkerTimeZone());
         } catch (DataModelParsingException e) {
             problems.add(new ExecuteResponseProblem(ExecuteRequest.Field.DATA_MODEL, decorateResultText(e.getMessage())));
             return null;

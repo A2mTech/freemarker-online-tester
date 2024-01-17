@@ -78,9 +78,7 @@
           
             <form id="templateAndModelForm" method="post" class="pure-form pure-form-stacked">
                 <label for="template">Template <span class="faint">(Apache FreeMarker ${freeMarkerVersion})</span></label>
-                <textarea id="template" name="template" class="pure-input-1 source-code"
-                        placeholder="Enter template, like: Hello ${r'${user}'}!"
-                >${template}</textarea>
+                <textarea id="template" name="template" class="pure-input-1 source-code" placeholder="Enter template, like: Hello ${r'${user}'}!">${template}</textarea>
     
                 <label for="template">
                     Data model
